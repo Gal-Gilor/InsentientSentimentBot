@@ -46,4 +46,4 @@ class LSTMClassifier(nn.Module):
         # pass the raw logits through sigmoid activation layer
         output = self.sigmoid(output)
         
-        return output
+        return output.squeeze()

@@ -10,23 +10,40 @@ class LSTMClassifier(nn.Module):
         Initialize the model by settingg up the various layers.
         """
         super(LSTMClassifier, self).__init__()
-
+        
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
         self.lstm = nn.LSTM(embedding_dim, hidden_dim)
         self.dense = nn.Linear(in_features=hidden_dim, out_features=1)
-        self.sig = nn.Sigmoid()
+        self.sigmoid = nn.Sigmoid()
         
         self.word_dict = None
-
-    def forward(self, x):
+        self.hidden_dim = hidden_dim
+        
+    def forward(self, inputs):
         """
         Perform a forward pass of our model on some input.
         """
-        x = x.t()
-        lengths = x[0,:]
-        reviews = x[1:,:]
+        
+        # transpose the inputs
+        inputs = inputs.t()
+        
+        # separate the reviews and the review lengths
+        review_lengths = inputs[0,:]
+        reviews = inputs[1:,:]
+        
+        # ensure embedding layer gets a LongTensor input
+        reviews = reviews.long()
         embeds = self.embedding(reviews)
-        lstm_out, _ = self.lstm(embeds)
-        out = self.dense(lstm_out)
-        out = out[lengths - 1, range(len(lengths))]
-        return self.sig(out.squeeze())
+        
+        # stack LSTM
+        output, _ = self.lstm(embeds)      
+        output = output.contiguous().view(-1, self.hidden_dim)
+        
+        # pass through the full connected layer
+        output = self.dense(output)
+        output = output[review_lengths - 1, range(len(review_lengths))]
+        
+        # pass the raw logits through sigmoid activation layer
+        output = self.sigmoid(output)
+        
+        return output.squeeze()

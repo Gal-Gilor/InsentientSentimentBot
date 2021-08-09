@@ -82,14 +82,14 @@ def train(model, train_loader, epochs, optimizer, loss_fn, device):
             # zero accumulated gradients
             model.zero_grad()
 
-            # get the output from the model
-            output = model(batch_X).squeeze()
+            #get the output from the model
+            output = model(batch_X)
 
             # calcualte the loss
-            loss_fn = criterion(output, batch_y)
+            loss = loss_fn(output, batch_y)
 
             # perform backpropagation
-            loss_fn.backward()
+            loss.backward()
 
             # clip to prevent gradients from becoming too large BEFORE optimizating
             nn.utils.clip_grad_value_(model.parameters(), 4)
