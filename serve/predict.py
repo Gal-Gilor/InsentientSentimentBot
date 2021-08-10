@@ -95,4 +95,4 @@ def predict_fn(input_data, model):
     
     pred = pred.item()
    
-    return float(pred)
+    return round(float(pred))

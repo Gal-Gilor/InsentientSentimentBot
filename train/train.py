@@ -8,6 +8,7 @@ import pandas as pd
 import torch
 import torch.optim as optim
 import torch.utils.data
+import torch.nn as nn
 
 from model import LSTMClassifier
 

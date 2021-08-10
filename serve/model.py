@@ -35,13 +35,12 @@ class LSTMClassifier(nn.Module):
         reviews = reviews.long()
         embeds = self.embedding(reviews)
         
-        # stack LSTM
+        # LSTM
         output, _ = self.lstm(embeds)      
         output = output.contiguous().view(-1, self.hidden_dim)
         
         # pass through the full connected layer
         output = self.dense(output)
-        output = output[review_lengths - 1, range(len(review_lengths))]
         
         # pass the raw logits through sigmoid activation layer
         output = self.sigmoid(output)
