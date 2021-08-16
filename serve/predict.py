@@ -16,8 +16,11 @@ from model import LSTMClassifier
 from utils import review_to_words, convert_and_pad
 
 def model_fn(model_dir):
-    """Load the PyTorch model from the `model_dir` directory."""
-    print("Loading model.")
+    '''
+    Load the PyTorch model
+    '''
+    
+    print("Loading model...")
 
     # First, load the parameters used to create the model.
     model_info = {}
@@ -43,10 +46,16 @@ def model_fn(model_dir):
 
     model.to(device).eval()
 
-    print("Done loading model.")
+    print("Model loaded successfully")
     return model
 
-def input_fn(serialized_input_data, content_type):
+def input_fn(serialized_input_data, content_type='text/plain'):
+    '''
+    Deserialize string input
+    inputs:
+        serialized_input_data: string, the data in string form
+        content_type: string, which serializer to use. default='text/plain'
+    '''
     print('Deserializing the input data.')
     if content_type == 'text/plain':
         data = serialized_input_data.decode('utf-8')
@@ -54,45 +63,43 @@ def input_fn(serialized_input_data, content_type):
     raise Exception('Requested unsupported ContentType in content_type: ' + content_type)
 
 def output_fn(prediction_output, accept):
+    '''
+    Serialize model output
+    '''
     print('Serializing the generated output.')
     return str(prediction_output)
 
 def predict_fn(input_data, model):
+    '''
+    Predict text sentiment
+    inputs:
+        input_data: string, text to predict the sentiment on
+        model: LSTMClassifier, instanciated LSTMClassifier object  
+    '''
     print('Inferring sentiment of input data.')
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # transfer to device
     
     if model.word_dict is None:
         raise Exception('Model has not been loaded properly, no word_dict.')
     
-    # TODO: Process input_data so that it is ready to be sent to our model.
-    #       You should produce two variables:
-    #         data_X   - A sequence of length 500 which represents the converted review
-    #         data_len - The length of the review
-
     # clean the reviews text (text preprocessing)
     words = review_to_words(input_data)
 
     # convert the words to integers, replace infrequent words, and ensure the review is in uniform length
     data_X, data_len = convert_and_pad(model.word_dict, words)
 
-    # Using data_X and data_len we construct an appropriate input tensor. Remember
-    # that our model expects input data of the form 'len, review[500]'.
-    data_pack = np.hstack((data_len, data_X))
+    # Using data_X and data_len construct an appropriate input tensor
+    data_pack = np.hstack((data_len, data_X)) # concatenate the length and the data
     data_pack = data_pack.reshape(1, -1)
     
     data = torch.from_numpy(data_pack)
-    data = data.to(device)
+    data = data.to(device)  # transfer to device
 
     # Make sure to put the model into evaluation mode
     model.eval()
 
-    # TODO: Compute the result of applying the model to the input data. The variable `result` should
-    #       be a numpy array which contains a single integer which is either 1 or 0
-
     with torch.no_grad():
         pred = model(data)
-    
-    pred = pred.item()
    
-    return round(float(pred))
+    return float(pred.item())
