@@ -21,7 +21,7 @@ class LSTMClassifier(nn.Module):
         
     def forward(self, inputs):
         '''
-        Define the model's forward pass
+        Define LSTMClassifier's forward pass
         '''
         
         # transpose the inputs
